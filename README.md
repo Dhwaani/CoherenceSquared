@@ -60,7 +60,7 @@ Three things to note:
 And the classifier can be poor: conditioning beats the unconditioned baseline until
 the class-label error rate exceeds roughly 45 %.
 
-### Can the classes be discovered without labels?
+### Unsupervised Discovery Capabilities
 
 Partially. Unsupervised k-means over body-sensor log-band energies (`exp03`),
 no phoneme recogniser and no labelled corpus:
