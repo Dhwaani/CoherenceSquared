@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "coherence²: blind synchronisation for asynchronous multimodal audio capture"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Chakraborty
+    given-names: Ashmita
+    orcid: "https://orcid.org/0009-0001-5506-9588"
+repository-code: "https://github.com/Dhwaani/coherence-squared"
+abstract: >-
+  Blind sampling-rate-offset estimation between an air microphone and a
+  body-conduction sensor running on independent clocks. Existing estimators from
+  the wireless acoustic sensor network literature assume a time-invariant
+  inter-channel transfer function; in multimodal capture that transfer function
+  is signal-dependent, which costs the estimator its consistency. This work
+  characterises the failure and proposes conditioning coherence accumulation on
+  latent signal class.
+keywords:
+  - sampling rate offset
+  - blind synchronisation
+  - bone conduction
+  - own voice detection
+  - coherence
+  - embedded audio
+license: Apache-2.0
