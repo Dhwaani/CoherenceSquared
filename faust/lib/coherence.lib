@@ -1,0 +1,123 @@
+//==============================================================================
+// coherence.lib -- recursive band-wise magnitude-squared coherence
+//
+//
+// Design notes:
+//   * Band split uses a biquad filterbank, NOT an FFT. FAUST expands FFT into
+//     scalar butterflies and the generated code becomes unmanageable on an M4.
+//   * The imaginary part of the cross-spectrum needs a 90 degree phase shift.
+//     fi.hilbert does not exist as executable code in the standard library
+//     (it is present only as a comment), so the quadrature pair is built here
+//     from a two-path polyphase allpass network.
+//   * Everything is one-pole smoothed rather than block-averaged, so the
+//     estimator is O(1) per sample per band with no buffering.
+//==============================================================================
+
+import("stdfaust.lib");
+
+//------------------------------------------------------------------------------
+// Two-path polyphase IIR Hilbert transformer.
+// Each path is a cascade of first-order allpass sections; the phase difference
+// between the two outputs approximates 90 degrees across the passband.
+// Coefficients are the classic Regalia-Mitra set for roughly 0.005..0.49 fs.
+//------------------------------------------------------------------------------
+
+ap1(a) = (+ : *(a) : + ~ *(-a)) ~ _ : mem
+    with { };
+
+// A numerically simpler first-order allpass: y[n] = a*x[n] + x[n-1] - a*y[n-1]
+apf(a) = _ <: (*(a) + (_' )) - ( _ ) : + ~ *(0) ;  // placeholder, see note below
+
+// NOTE: the two definitions above are deliberately left in place as a marker.
+// The allpass section must be written as a second-order section in a^2 for the
+// standard polyphase Hilbert design:
+//        H(z) = (a^2 + z^-2) / (1 + a^2 z^-2)
+// which is the form the coefficients below assume.
+
+a2(a) = _ : (+ ~ *(0-a*a) : mem : mem) <: *(a*a) , _ :> _
+    with { };
+
+pathA = a2(0.6923877778) : a2(0.9360654322) : a2(0.9882295226) : a2(0.9987488452);
+pathB = a2(0.4021921162) : a2(0.8561710882) : a2(0.9722909545) : a2(0.9952884791);
+
+// quad(x) = (in-phase, quadrature). pathB is delayed one sample so the pair
+// differs by 90 degrees rather than 90 plus a bulk delay.
+quad = _ <: (pathA , (pathB : mem));
+
+//------------------------------------------------------------------------------
+// Analysis filterbank -- third-octave biquad bank.
+//------------------------------------------------------------------------------
+
+nBands = 18;
+fLow   = 100.0;
+ratio  = pow(2.0, 1.0/3.0);
+bandFc(i) = fLow * pow(ratio, i);
+bandQ = 4.318;   // third-octave
+
+band(i) = fi.resonbp(bandFc(i), bandQ, 1.0);
+
+//------------------------------------------------------------------------------
+// One-pole smoother. tau in seconds.
+//------------------------------------------------------------------------------
+
+smooth(tau) = si.smooth(exp(-1.0 / (tau * ma.SR)));
+
+//------------------------------------------------------------------------------
+// Per-band coherence between two inputs.
+//
+//   msc(tau, i) : x, y -> gamma2
+//
+// Sxx = <x*x>, Syy = <y*y>, Sre = <x*y>, Sim = <x*yq>
+// gamma2 = (Sre^2 + Sim^2) / (Sxx*Syy + eps)
+//------------------------------------------------------------------------------
+
+eps = 1e-12;
+
+msc(tau, i) = bandpair : coh
+with {
+    bandpair(x, y) = xb, yb, yq
+    with {
+        xb = x : band(i);
+        yb = y : band(i) : quad : _ , !;
+        yq = y : band(i) : quad : ! , _;
+    };
+    coh(xb, yb, yq) = (sre*sre + sim*sim) / (sxx*syy + eps)
+    with {
+        sxx = xb*xb : smooth(tau);
+        syy = yb*yb : smooth(tau);
+        sre = xb*yb : smooth(tau);
+        sim = xb*yq : smooth(tau);
+    };
+};
+
+//------------------------------------------------------------------------------
+// Own-voice probability: mean coherence over the body-conduction band.
+// Feed (air_mic, body_sensor).
+//------------------------------------------------------------------------------
+
+ownVoice(tau) = _ , _ <: par(i, nBands, msc(tau, i)) :> /(nBands);
+
+//------------------------------------------------------------------------------
+// Inter-band phase, for drift diagnostics. Feed two streams that should be
+// coherent; a sampling-rate offset shows up as a phase ramp across bands.
+//------------------------------------------------------------------------------
+
+bandPhase(tau, i) = _ , _ <: atan2(sim, sre)
+with {
+    xb(x, y) = x : band(i);
+    sre = _ , _ : bandpairRe : smooth(tau);
+    sim = _ , _ : bandpairIm : smooth(tau);
+    bandpairRe(x, y) = (x : band(i)) * (y : band(i) : quad : _ , !);
+    bandpairIm(x, y) = (x : band(i)) * (y : band(i) : quad : ! , _);
+};
+
+//------------------------------------------------------------------------------
+// TODO before this is usable:
+//   1. Resolve the allpass section definitions above -- only a2() is intended
+//      to survive; ap1/apf are scaffolding and must be deleted.
+//   2. Verify the quadrature phase error across 100 Hz .. 7 kHz against the
+//      MATLAB/Python design. If it exceeds ~2 degrees the drift estimator will
+//      not work.
+//   3. Compare gamma2 output against python/cohsq on identical input.
+//   4. Fixed-point analysis before any target build.
+//------------------------------------------------------------------------------
