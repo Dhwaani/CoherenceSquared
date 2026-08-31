@@ -44,20 +44,8 @@ On a synthetic model with a known SRO of 100 ppm, 60 s observation, 20 seeds:
 | Signal-dependent channel — *multimodal reality* | +24.13 | 112.99 | **115.54** |
 | + class conditioning — *proposed* | +1.47 | 5.76 | **5.94** |
 
-Three things to note:
 
-1. **The baseline is worse than useless.** At a true SRO of 100 ppm its RMSE is
-   115 ppm — larger than the quantity being measured. The same holds at 20, 50 and
-   200 ppm, where the error is essentially unchanged (≈113–116 ppm RMSE), because the
-   nuisance term is independent of ε.
-2. **More data does not help.** Sweeping observation length from 15 s to 240 s leaves
-   the baseline error flat (≈70–93 ppm). This is not slow convergence. For a *fixed*
-   set of transfer functions — i.e. a fixed speaker and device — the estimator
-   converges to the wrong value.
-3. **Conditioning recovers almost everything**, using only ~31 % of frame pairs. The
-   discarded pairs were not merely uninformative; they were actively harmful.
-
-And the classifier can be poor: conditioning beats the unconditioned baseline until
+The classifier can be poor: conditioning beats the unconditioned baseline until
 the class-label error rate exceeds roughly 45 %.
 
 ### Unsupervised Discovery Capabilities
