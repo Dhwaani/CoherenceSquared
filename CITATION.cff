@@ -6,7 +6,7 @@ authors:
   - family-names: Chakraborty
     given-names: Ashmita
     orcid: "https://orcid.org/0009-0001-5506-9588"
-repository-code: "https://github.com/Dhwaani/coherence-squared"
+repository-code: "https://github.com/Dhwaani/CoherenceSquared"
 abstract: >-
   Blind sampling-rate-offset estimation between an air microphone and a
   body-conduction sensor running on independent clocks. Existing estimators from
