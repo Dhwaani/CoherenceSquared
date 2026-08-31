@@ -83,7 +83,7 @@ That quantified gap — 0.61 achieved versus ~0.85 needed for near-oracle perfor
 is a well-posed target for a learned classifier, and it is where machine learning
 enters this project with something to do rather than as decoration.
 
-## Status and honesty about scope
+## Status & Scope Boundaries
 
 | Component | State |
 |---|---|
@@ -100,7 +100,7 @@ filters may exaggerate the phase diversity of genuine air-to-body transfer paths
 which case the effect shrinks. Measured phoneme-dependent transfer functions
 ([Ohlenbusch et al., 2024](https://arxiv.org/abs/2310.06554)) are the correct next input.
 
-## Validation deliverables
+## System Validation & Outputs
 
 The synthetic result above is a feasibility sketch, not evidence about real
 signals. [`docs/validation-plan.md`](docs/validation-plan.md) sets out how it gets
