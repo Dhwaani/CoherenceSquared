@@ -69,7 +69,7 @@ the label-noise sweep predicts.
 
 That quantified gap — 0.61 achieved versus ~0.85 needed for near-oracle performance —
 is a well-posed target for a learned classifier, and it is where machine learning
-enters this project with something to do rather than as decoration.
+enters this project.
 
 ## Status & Scope Boundaries
 
