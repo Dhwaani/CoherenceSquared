@@ -2,6 +2,8 @@
 
 **Blind synchronisation for asynchronous multimodal audio capture.**
 
+***The project investigation and modelling is still in progress***
+
 When an air microphone and a body-conduction sensor run on independent clocks, the
 sampling-rate offset (SRO) between them must be estimated blindly. The wireless
 acoustic sensor network (WASN) literature solves exactly this problem — but under
